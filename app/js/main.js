@@ -18,6 +18,8 @@ const AppView = () => {
             <button id="moveRight">Move Right</button>
             <button id="moveUp">Move Up</button>
             <button id="moveDown">Move Down</button>
+            <button id="submitBtn">Submit</button>
+            <button id="importBtn">Import</button>
         </div>`;
 
   // grab DOM elements inside index.html
@@ -29,6 +31,8 @@ const AppView = () => {
   const moveRight = document.getElementById("moveRight");
   const moveUp = document.getElementById("moveUp");
   const moveDown = document.getElementById("moveDown");
+  const submitBtn = document.getElementById("submitBtn");
+  const importBtn = document.getElementById("importBtn");
 
   let img;
 
@@ -53,6 +57,7 @@ const AppView = () => {
     // get all selected Files
     const files = e.target.files;
     let file;
+    let reader;
     for (let i = 0; i < files.length; ++i) {
       file = files[i];
       // check if file is valid Image (just a MIME check)
@@ -61,7 +66,7 @@ const AppView = () => {
         case "image/png":
         case "image/gif":
           // read Image contents from file
-          const reader = new FileReader();
+          reader = new FileReader();
           reader.onload = function (e) {
             // create HTMLImageElement holding image data
             img = new Image();
@@ -78,6 +83,8 @@ const AppView = () => {
               editorCanvas.width = 500;
               // editorCanvas.height = (500 * height) / width;
               editorCanvas.height = 500;
+
+              // do your magic here...
 
               //   var imageAspectRatio = width / height;
               //   var canvasAspectRatio = editorCanvas.width / editorCanvas.height;
@@ -152,6 +159,7 @@ const AppView = () => {
               var x = editorCanvas.width / 2 - (img.width / 2) * scale;
               var y = editorCanvas.height / 2 - (img.height / 2) * scale;
               ctx = editorCanvas.getContext("2d");
+              ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
               ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
             };
 
@@ -252,12 +260,25 @@ const AppView = () => {
               fillImage();
             };
 
+            const submitFn = () => {
+              localStorage.setItem("image", reader.result);
+            };
+
+            const importDataFn = () => {
+              //   let img = document.getElementById("image");
+              //   img.src = localStorage.getItem("image");
+              const x = localStorage.getItem("image");
+              console.log(x);
+            };
+
             scaleUp.addEventListener("click", scaleUpFn);
             scaleDown.addEventListener("click", scaleDownFn);
             moveLeft.addEventListener("click", () => moveFn("left"));
             moveRight.addEventListener("click", () => moveFn("right"));
             moveUp.addEventListener("click", () => moveFn("up"));
             moveDown.addEventListener("click", () => moveFn("down"));
+            submitBtn.addEventListener("click", submitFn);
+            importBtn.addEventListener("click", importDataFn);
           };
           reader.readAsDataURL(file);
           // process just one file.
