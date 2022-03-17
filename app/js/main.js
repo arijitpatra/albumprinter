@@ -53,11 +53,24 @@ const AppView = () => {
 
   //   scaleUp.addEventListener("click", scaleUpFn);
 
+  const importDataFn = () => {
+    //   let img = document.getElementById("image");
+    //   img.src = localStorage.getItem("image");
+    const x = localStorage.getItem("fileName");
+    const y = localStorage.getItem("data");
+    console.log(x, JSON.parse(y).canvas);
+  };
+
+  importBtn.addEventListener("click", importDataFn);
+
   fileSelector.onchange = function (e) {
     // get all selected Files
     const files = e.target.files;
     let file;
     let reader;
+    let xOff = 0;
+    let yOff = 0;
+
     for (let i = 0; i < files.length; ++i) {
       file = files[i];
       // check if file is valid Image (just a MIME check)
@@ -227,20 +240,24 @@ const AppView = () => {
               var rect = img.getBoundingClientRect();
               var x = rect.left;
               var y = rect.top;
-              var dist = 5; //set distance
+              var dist = 1; //set distance
 
               switch (direction) {
                 case "up":
                   y -= dist;
+                  yOff -= dist;
                   break;
                 case "down":
                   y += dist;
+                  yOff += dist;
                   break;
                 case "left":
                   x -= dist;
+                  xOff -= dist;
                   break;
                 case "right":
                   x += dist;
+                  xOff += dist;
                   break;
               }
 
@@ -261,14 +278,21 @@ const AppView = () => {
             };
 
             const submitFn = () => {
-              localStorage.setItem("image", reader.result);
-            };
-
-            const importDataFn = () => {
-              //   let img = document.getElementById("image");
-              //   img.src = localStorage.getItem("image");
-              const x = localStorage.getItem("image");
-              console.log(x);
+              const data = {
+                canvas: {
+                  width: img.naturalWidth,
+                  height: img.naturalHeight,
+                  photo: {
+                    id: "fileName",
+                    width: editorCanvas.width,
+                    height: editorCanvas.height,
+                    x: xOff,
+                    y: yOff,
+                  },
+                },
+              };
+              localStorage.setItem("data", JSON.stringify(data));
+              localStorage.setItem("fileName", reader.result);
             };
 
             scaleUp.addEventListener("click", scaleUpFn);
@@ -278,7 +302,6 @@ const AppView = () => {
             moveUp.addEventListener("click", () => moveFn("up"));
             moveDown.addEventListener("click", () => moveFn("down"));
             submitBtn.addEventListener("click", submitFn);
-            importBtn.addEventListener("click", importDataFn);
           };
           reader.readAsDataURL(file);
           // process just one file.
