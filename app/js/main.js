@@ -56,8 +56,9 @@ const AppView = () => {
   const importDataFn = () => {
     //   let img = document.getElementById("image");
     //   img.src = localStorage.getItem("image");
-    const x = localStorage.getItem("fileName");
+
     const y = localStorage.getItem("data");
+    const x = localStorage.getItem(JSON.parse(y).canvas.photo.id);
     console.log(x, JSON.parse(y).canvas);
   };
 
