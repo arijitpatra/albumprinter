@@ -36,23 +36,6 @@ const AppView = () => {
 
   let img;
 
-  //   const scaleUpFn = () => {
-  //     const ctx = editorCanvas.getContext("2d");
-  //     ctx.drawImage(
-  //       img,
-  //       0,
-  //       0,
-  //       img.naturalWidth * 2,
-  //       img.naturalHeight * 2,
-  //       0,
-  //       0,
-  //       editorCanvas.width,
-  //       editorCanvas.height
-  //     );
-  //   };
-
-  //   scaleUp.addEventListener("click", scaleUpFn);
-
   const importDataFn = () => {
     //   let img = document.getElementById("image");
     //   img.src = localStorage.getItem("image");
@@ -71,9 +54,11 @@ const AppView = () => {
     let reader;
     let xOff = 0;
     let yOff = 0;
+    let fileName;
 
     for (let i = 0; i < files.length; ++i) {
       file = files[i];
+      fileName = file.name;
       // check if file is valid Image (just a MIME check)
       switch (file.type) {
         case "image/jpeg":
@@ -100,45 +85,6 @@ const AppView = () => {
 
               // do your magic here...
 
-              //   var imageAspectRatio = width / height;
-              //   var canvasAspectRatio = editorCanvas.width / editorCanvas.height;
-              //   var renderableHeight, renderableWidth, xStart, yStart;
-
-              //   if (imageAspectRatio < canvasAspectRatio) {
-              //     renderableHeight = editorCanvas.height;
-              //     renderableWidth = width * (renderableHeight / height);
-              //     xStart = (editorCanvas.width - renderableWidth) / 2;
-              //     yStart = 0;
-              //   }
-
-              //   // If image's aspect ratio is greater than canvas's we fit on width
-              //   // and place the image centrally along height
-              //   else if (imageAspectRatio > canvasAspectRatio) {
-              //     renderableWidth = editorCanvas.width;
-              //     renderableHeight = height * (renderableWidth / width);
-              //     xStart = 0;
-              //     yStart = (editorCanvas.height - renderableHeight) / 2;
-              //   }
-
-              // Happy path - keep aspect ratio
-              //   else {
-              //   renderableHeight = editorCanvas.height;
-              //   renderableWidth = editorCanvas.width;
-              //   xStart = 0;
-              //   yStart = 0;
-              //   //   }
-
-              //   ctx = editorCanvas.getContext("2d");
-              //   ctx.drawImage(
-              //     img,
-              //     xStart,
-              //     yStart,
-              //     renderableWidth,
-              //     renderableHeight
-              //   );
-
-              // ************************************************
-
               var scale = Math.max(
                 editorCanvas.width / img.width,
                 editorCanvas.height / img.height
@@ -148,19 +94,6 @@ const AppView = () => {
               var y = editorCanvas.height / 2 - (img.height / 2) * scale;
               ctx = editorCanvas.getContext("2d");
               ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-
-              //   ctx = editorCanvas.getContext("2d");
-              //   ctx.drawImage(
-              //     img,
-              //     0,
-              //     0,
-              //     // width,
-              //     // height,
-              //     // 0,
-              //     // 0,
-              //     editorCanvas.width,
-              //     editorCanvas.height
-              //   );
             };
             // do your magic here...
 
@@ -179,17 +112,6 @@ const AppView = () => {
 
             const scaleUpFn = () => {
               ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
-              //   ctx.drawImage(
-              //     img,
-              //     0,
-              //     0,
-              //     width,
-              //     height,
-              //     0,
-              //     0,
-              //     editorCanvas.width * 2,
-              //     editorCanvas.height * 2
-              //   );
               var scale = Math.max(
                 editorCanvas.width / img.width,
                 editorCanvas.height / img.height
@@ -209,17 +131,6 @@ const AppView = () => {
 
             const scaleDownFn = () => {
               ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
-              //   ctx.drawImage(
-              //     img,
-              //     0,
-              //     0,
-              //     width,
-              //     height,
-              //     0,
-              //     0,
-              //     editorCanvas.width * 0.5,
-              //     editorCanvas.height * 0.5
-              //   );
               var scale = Math.max(
                 editorCanvas.width / img.width,
                 editorCanvas.height / img.height
@@ -264,17 +175,6 @@ const AppView = () => {
 
               ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
               ctx.translate(x, y);
-              //   ctx.drawImage(
-              //     img,
-              //     0,
-              //     0,
-              //     width,
-              //     height,
-              //     0,
-              //     0,
-              //     editorCanvas.width,
-              //     editorCanvas.height
-              //   );
               fillImage();
             };
 
@@ -284,7 +184,7 @@ const AppView = () => {
                   width: img.naturalWidth,
                   height: img.naturalHeight,
                   photo: {
-                    id: "fileName",
+                    id: fileName,
                     width: editorCanvas.width,
                     height: editorCanvas.height,
                     x: xOff,
@@ -293,7 +193,7 @@ const AppView = () => {
                 },
               };
               localStorage.setItem("data", JSON.stringify(data));
-              localStorage.setItem("fileName", reader.result);
+              localStorage.setItem(fileName, reader.result);
             };
 
             scaleUp.addEventListener("click", scaleUpFn);
