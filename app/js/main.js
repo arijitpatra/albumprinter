@@ -37,15 +37,163 @@ const AppView = () => {
   let img;
 
   const importDataFn = () => {
-    //   let img = document.getElementById("image");
-    //   img.src = localStorage.getItem("image");
-
-    const y = localStorage.getItem("data");
-    const x = localStorage.getItem(JSON.parse(y).canvas.photo.id);
-    console.log(x, JSON.parse(y).canvas);
+    const data = localStorage.getItem("data");
+    const imgSrcBase64 = localStorage.getItem(JSON.parse(data).canvas.photo.id);
+    console.log(imgSrcBase64, JSON.parse(data).canvas);
+    const { x, y } = JSON.parse(data).canvas.photo;
+    processImage(imgSrcBase64, x, y, JSON.parse(data).canvas.photo.id);
   };
 
   importBtn.addEventListener("click", importDataFn);
+
+  const processImage = (reader, xOff, yOff, fileName) => {
+    // create HTMLImageElement holding image data
+    img = new Image();
+
+    img.src = reader.result !== undefined ? reader.result : reader;
+
+    let ctx;
+    let width;
+    let height;
+
+    img.onload = function () {
+      // grab some data from the image
+      width = img.naturalWidth;
+      height = img.naturalHeight;
+
+      editorCanvas.width = 500;
+      // editorCanvas.height = (500 * height) / width;
+      editorCanvas.height = 500;
+
+      // do your magic here...
+
+      var scale = Math.max(
+        editorCanvas.width / img.width,
+        editorCanvas.height / img.height
+      );
+      // get the top left position of the image
+      var x = editorCanvas.width / 2 - (img.width / 2) * scale;
+      var y = editorCanvas.height / 2 - (img.height / 2) * scale;
+      ctx = editorCanvas.getContext("2d");
+      ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+      ctx.translate(xOff, yOff);
+      ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
+      ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+    };
+    // do your magic here...
+
+    const fillImage = () => {
+      var scale = Math.max(
+        editorCanvas.width / img.width,
+        editorCanvas.height / img.height
+      );
+      // get the top left position of the image
+      var x = editorCanvas.width / 2 - (img.width / 2) * scale;
+      var y = editorCanvas.height / 2 - (img.height / 2) * scale;
+      ctx = editorCanvas.getContext("2d");
+      ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
+      ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+    };
+
+    const scaleUpFn = () => {
+      ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
+      var scale = Math.max(
+        editorCanvas.width / img.width,
+        editorCanvas.height / img.height
+      );
+      // get the top left position of the image
+      var x = editorCanvas.width / 2 - (img.width / 2) * scale;
+      var y = editorCanvas.height / 2 - (img.height / 2) * scale;
+      ctx = editorCanvas.getContext("2d");
+      ctx.drawImage(img, x, y, img.width * scale * 2, img.height * scale * 2);
+    };
+
+    const scaleDownFn = () => {
+      ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
+      var scale = Math.max(
+        editorCanvas.width / img.width,
+        editorCanvas.height / img.height
+      );
+      const iW = img.width * 0.5;
+      const iH = img.height * 0.5;
+      if (iW < editorCanvas.width || iH < editorCanvas.height) {
+        scale = 0.5;
+        // get the top left position of the image
+        var x = editorCanvas.width / 2 - (img.width / 2) * scale;
+        var y = editorCanvas.height / 2 - (img.height / 2) * scale;
+        ctx = editorCanvas.getContext("2d");
+        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+      } else {
+        // get the top left position of the image
+        var x = editorCanvas.width / 2 - (img.width / 2) * scale;
+        var y = editorCanvas.height / 2 - (img.height / 2) * scale;
+        ctx = editorCanvas.getContext("2d");
+        ctx.drawImage(
+          img,
+          x,
+          y,
+          img.width * scale * 0.5,
+          img.height * scale * 0.5
+        );
+      }
+    };
+
+    const moveFn = (direction) => {
+      var rect = img.getBoundingClientRect();
+      var x = rect.left;
+      var y = rect.top;
+      var dist = 1; //set distance
+
+      switch (direction) {
+        case "up":
+          y -= dist;
+          yOff -= dist;
+          break;
+        case "down":
+          y += dist;
+          yOff += dist;
+          break;
+        case "left":
+          x -= dist;
+          xOff -= dist;
+          break;
+        case "right":
+          x += dist;
+          xOff += dist;
+          break;
+      }
+
+      ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
+      ctx.translate(x, y);
+      fillImage();
+    };
+
+    const submitFn = () => {
+      const data = {
+        canvas: {
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+          photo: {
+            id: fileName,
+            width: editorCanvas.width,
+            height: editorCanvas.height,
+            x: xOff,
+            y: yOff,
+          },
+        },
+      };
+      localStorage.setItem("data", JSON.stringify(data));
+      localStorage.setItem(fileName, img.src);
+    };
+
+    scaleUp.addEventListener("click", scaleUpFn);
+    scaleDown.addEventListener("click", scaleDownFn);
+    moveLeft.addEventListener("click", () => moveFn("left"));
+    moveRight.addEventListener("click", () => moveFn("right"));
+    moveUp.addEventListener("click", () => moveFn("up"));
+    moveDown.addEventListener("click", () => moveFn("down"));
+    submitBtn.addEventListener("click", submitFn);
+  };
 
   fileSelector.onchange = function (e) {
     // get all selected Files
@@ -67,142 +215,7 @@ const AppView = () => {
           // read Image contents from file
           reader = new FileReader();
           reader.onload = function (e) {
-            // create HTMLImageElement holding image data
-            img = new Image();
-            img.src = reader.result;
-            let ctx;
-            let width;
-            let height;
-
-            img.onload = function () {
-              // grab some data from the image
-              width = img.naturalWidth;
-              height = img.naturalHeight;
-
-              editorCanvas.width = 500;
-              // editorCanvas.height = (500 * height) / width;
-              editorCanvas.height = 500;
-
-              // do your magic here...
-
-              var scale = Math.max(
-                editorCanvas.width / img.width,
-                editorCanvas.height / img.height
-              );
-              // get the top left position of the image
-              var x = editorCanvas.width / 2 - (img.width / 2) * scale;
-              var y = editorCanvas.height / 2 - (img.height / 2) * scale;
-              ctx = editorCanvas.getContext("2d");
-              ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-            };
-            // do your magic here...
-
-            const fillImage = () => {
-              var scale = Math.max(
-                editorCanvas.width / img.width,
-                editorCanvas.height / img.height
-              );
-              // get the top left position of the image
-              var x = editorCanvas.width / 2 - (img.width / 2) * scale;
-              var y = editorCanvas.height / 2 - (img.height / 2) * scale;
-              ctx = editorCanvas.getContext("2d");
-              ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
-              ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-            };
-
-            const scaleUpFn = () => {
-              ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
-              var scale = Math.max(
-                editorCanvas.width / img.width,
-                editorCanvas.height / img.height
-              );
-              // get the top left position of the image
-              var x = editorCanvas.width / 2 - (img.width / 2) * scale;
-              var y = editorCanvas.height / 2 - (img.height / 2) * scale;
-              ctx = editorCanvas.getContext("2d");
-              ctx.drawImage(
-                img,
-                x,
-                y,
-                img.width * scale * 2,
-                img.height * scale * 2
-              );
-            };
-
-            const scaleDownFn = () => {
-              ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
-              var scale = Math.max(
-                editorCanvas.width / img.width,
-                editorCanvas.height / img.height
-              );
-              // get the top left position of the image
-              var x = editorCanvas.width / 2 - (img.width / 2) * scale;
-              var y = editorCanvas.height / 2 - (img.height / 2) * scale;
-              ctx = editorCanvas.getContext("2d");
-              ctx.drawImage(
-                img,
-                x,
-                y,
-                img.width * scale * 0.5,
-                img.height * scale * 0.5
-              );
-            };
-
-            const moveFn = (direction) => {
-              var rect = img.getBoundingClientRect();
-              var x = rect.left;
-              var y = rect.top;
-              var dist = 1; //set distance
-
-              switch (direction) {
-                case "up":
-                  y -= dist;
-                  yOff -= dist;
-                  break;
-                case "down":
-                  y += dist;
-                  yOff += dist;
-                  break;
-                case "left":
-                  x -= dist;
-                  xOff -= dist;
-                  break;
-                case "right":
-                  x += dist;
-                  xOff += dist;
-                  break;
-              }
-
-              ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
-              ctx.translate(x, y);
-              fillImage();
-            };
-
-            const submitFn = () => {
-              const data = {
-                canvas: {
-                  width: img.naturalWidth,
-                  height: img.naturalHeight,
-                  photo: {
-                    id: fileName,
-                    width: editorCanvas.width,
-                    height: editorCanvas.height,
-                    x: xOff,
-                    y: yOff,
-                  },
-                },
-              };
-              localStorage.setItem("data", JSON.stringify(data));
-              localStorage.setItem(fileName, reader.result);
-            };
-
-            scaleUp.addEventListener("click", scaleUpFn);
-            scaleDown.addEventListener("click", scaleDownFn);
-            moveLeft.addEventListener("click", () => moveFn("left"));
-            moveRight.addEventListener("click", () => moveFn("right"));
-            moveUp.addEventListener("click", () => moveFn("up"));
-            moveDown.addEventListener("click", () => moveFn("down"));
-            submitBtn.addEventListener("click", submitFn);
+            processImage(reader, xOff, yOff, fileName);
           };
           reader.readAsDataURL(file);
           // process just one file.
